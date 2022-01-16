@@ -2,10 +2,12 @@ const axios = require('axios');
 
 const DUMMY_EMAIL = 'dummy@dummy.com';
 const DUMMY_PASSWORD = '1234';
+const PORT = process.env.PORT || 3000;
+const BASE_URL = `http://localhost:${PORT}/api/`;
 
 const createUser = async () => {
   try {
-    const res = await axios.post('http://localhost:3000/api/users', {
+    const res = await axios.post(`${BASE_URL}users`, {
       user: {
         username: 'DummyUserWilco',
         email: DUMMY_EMAIL,
@@ -21,7 +23,7 @@ const createUser = async () => {
 
 const userLogin = async () => {
   try {
-    const res = await axios.post('http://localhost:3000/api/users/login', {
+    const res = await axios.post(`${BASE_URL}users/login`, {
       user: {
         email: DUMMY_EMAIL,
         password: DUMMY_PASSWORD
@@ -37,8 +39,8 @@ const userLogin = async () => {
 const postItem = async token => {
   const randomNum = Math.floor(Math.random() * 999);
   try {
-    const item = await axios.post(
-      'http://localhost:3000/api/items',
+    await axios.post(
+      `${BASE_URL}items`,
       {
         item: {
           slug: `test-item-${randomNum}`,
@@ -56,7 +58,7 @@ const postItem = async token => {
 
 const getItemsCount = async () => {
   try {
-    const res = await axios.get('http://localhost:3000/api/items/');
+    const res = await axios.get(`${BASE_URL}items`);
     return res.data.itemsCount;
   } catch (e) {
     console.log(e.message);
