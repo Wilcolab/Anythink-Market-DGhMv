@@ -1,88 +1,56 @@
-const axios = require('axios');
+const { randomUUID } = require('crypto');
+const mongoose = require('mongoose');
 
-const DUMMY_EMAIL = 'dummy@dummy.com';
-const DUMMY_PASSWORD = '1234';
-const PORT = process.env.PORT || 3000;
-const BASE_URL = `http://localhost:${PORT}/api/`;
+require('dotenv').config();
+require('./models/User');
+require('./models/Item');
 
-const createUser = async () => {
-  try {
-    const res = await axios.post(`${BASE_URL}users`, {
-      user: {
-        username: 'DummyUserWilco',
-        email: DUMMY_EMAIL,
-        password: DUMMY_PASSWORD
-      }
-    });
-    return res.data;
-  } catch (e) {
-    console.log(e.message);
-    throw e;
-  }
+const User = mongoose.model('User');
+const Item = mongoose.model('Item');
+
+mongoose.connect(process.env.MONGODB_URI);
+mongoose.connection.once('open', () => {
+  console.log('connected to mongodb');
+});
+
+const user = new User({ username: 'DummyUserWilco', email: 'dummy@dummy.com' });
+user.save().then(() => {
+  console.log(`created user ${user.username}`);
+});
+
+const createItem = async () => {
+  const randomId = randomUUID();
+  const randomNum = Math.floor(Math.random() * 200);
+
+  const itemData = {
+    slug: `test-item-${randomId}`,
+    title: `Test Item-${randomId.split('-')[0]}`,
+    description: 'Dummy item with random bear image',
+    image: `https://placebear.com/g/200/${randomNum}`,
+    favoritesCount: 0,
+    comments: [],
+    tagList: ['bear', 'dummy']
+  };
+
+  const item = new Item(itemData);
+  item.seller = user;
+
+  return item.save().then(() => {
+    console.log(`${randomId} item created`);
+  });
 };
 
-const userLogin = async () => {
-  try {
-    const res = await axios.post(`${BASE_URL}users/login`, {
-      user: {
-        email: DUMMY_EMAIL,
-        password: DUMMY_PASSWORD
-      }
-    });
-    return res.status !== 200 ? false : res.data;
-  } catch (e) {
-    console.log(e.message);
-    return false;
-  }
-};
-
-const postItem = async token => {
-  const randomNum = Math.floor(Math.random() * 999);
-  try {
-    await axios.post(
-      `${BASE_URL}items`,
-      {
-        item: {
-          slug: `test-item-${randomNum}`,
-          title: 'Test Item',
-          description: 'Dummy item with random bear image',
-          image: `https://placebear.com/g/200/${randomNum}`
-        }
-      },
-      { headers: { Authorization: `Bearer ${token}` } }
-    );
-  } catch (e) {
-    console.log(e.message);
-  }
-};
-
-const getItemsCount = async () => {
-  try {
-    const res = await axios.get(`${BASE_URL}items`);
-    return res.data.itemsCount;
-  } catch (e) {
-    console.log(e.message);
-  }
-};
-
-const populateDummyData = async () => {
-  const itemsCount = await getItemsCount();
-  if (itemsCount > 42) {
-    console.log('You have enough dummy data');
-    return;
-  }
-  let user;
-  const isUserExist = await userLogin();
-  if (isUserExist) {
-    user = isUserExist;
-    console.log('used logged in user');
-  } else {
-    user = await createUser();
-    console.log('created new user');
-  }
+const populateDummyItems = async () => {
   const itemsToCreate = new Array(42).fill();
-  await Promise.all(itemsToCreate.map(() => postItem(user.user.token)));
-  console.log('created dummy data');
+  return Promise.all(itemsToCreate.map(() => createItem()));
 };
 
-populateDummyData();
+(async () => {
+  try {
+    await populateDummyItems();
+    console.log('created dummy data');
+  } catch (err) {
+    console.log(err);
+  }
+  process.exit();
+})();
