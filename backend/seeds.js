@@ -18,10 +18,11 @@ const createUser = async () => {
   const user = new User({ username: 'DummyUserWilco', email: 'dummy@dummy.com' });
   return user.save().then(() => {
     console.log(`created user ${user.username}`);
+    return user;
   });
 };
 
-const createItem = async () => {
+const createItem = async user => {
   const randomId = randomUUID();
   const randomNum = Math.floor(Math.random() * 200);
 
@@ -43,19 +44,15 @@ const createItem = async () => {
   });
 };
 
-const populateDummyItems = async () => {
+const populateDummyItems = async user => {
   const itemsToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
-  return Promise.all(itemsToCreate.map(() => createItem()));
+  return Promise.all(itemsToCreate.map(() => createItem(user)));
 };
 
 (async () => {
   try {
-    await createUser();
-  } catch (err) {
-    console.log(err);
-  }
-  try {
-    await populateDummyItems();
+    const user = await createUser();
+    await populateDummyItems(user);
     console.log('created dummy data');
   } catch (err) {
     console.log(err);
