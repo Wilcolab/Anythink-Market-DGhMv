@@ -14,10 +14,12 @@ mongoose.connection.once('open', () => {
   console.log('connected to mongodb');
 });
 
-const user = new User({ username: 'DummyUserWilco', email: 'dummy@dummy.com' });
-user.save().then(() => {
-  console.log(`created user ${user.username}`);
-});
+const createUser = async () => {
+  const user = new User({ username: 'DummyUserWilco', email: 'dummy@dummy.com' });
+  return user.save().then(() => {
+    console.log(`created user ${user.username}`);
+  });
+};
 
 const createItem = async () => {
   const randomId = randomUUID();
@@ -47,6 +49,11 @@ const populateDummyItems = async () => {
 };
 
 (async () => {
+  try {
+    await createUser();
+  } catch (err) {
+    console.log(err);
+  }
   try {
     await populateDummyItems();
     console.log('created dummy data');
