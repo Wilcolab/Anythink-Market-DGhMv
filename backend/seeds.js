@@ -7,6 +7,7 @@ require('./models/Item');
 
 const User = mongoose.model('User');
 const Item = mongoose.model('Item');
+const NUMBER_OF_ITEMS_TO_CREATE = 100;
 
 mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.once('open', () => {
@@ -41,7 +42,7 @@ const createItem = async () => {
 };
 
 const populateDummyItems = async () => {
-  const itemsToCreate = new Array(42).fill();
+  const itemsToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
   return Promise.all(itemsToCreate.map(() => createItem()));
 };
 
