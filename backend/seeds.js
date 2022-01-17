@@ -15,7 +15,8 @@ mongoose.connection.once('open', () => {
 });
 
 const createUser = async () => {
-  const user = new User({ username: 'DummyUserWilco', email: 'dummy@dummy.com' });
+  const randomId = randomUUID().split('-')[0];
+  const user = new User({ username: `DummyUserWilco${randomId}`, email: `dummy${randomId}@dummy.com` });
   return user.save().then(() => {
     console.log(`created user ${user.username}`);
     return user;
@@ -49,13 +50,19 @@ const populateDummyItems = async user => {
   return Promise.all(itemsToCreate.map(() => createItem(user)));
 };
 
+const populateDummyUsers = async () => {
+  const usersToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
+  return Promise.all(usersToCreate.map(() => createUser()));
+};
+
 (async () => {
   try {
-    const user = await createUser();
+    const [user] = await populateDummyUsers();
     await populateDummyItems(user);
     console.log('created dummy data');
   } catch (err) {
     console.log(err);
   }
+
   process.exit();
 })();
