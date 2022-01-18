@@ -4,10 +4,14 @@ const mongoose = require('mongoose');
 require('dotenv').config();
 require('./models/User');
 require('./models/Item');
+require('./models/Comment');
 
 const User = mongoose.model('User');
 const Item = mongoose.model('Item');
-const NUMBER_OF_ITEMS_TO_CREATE = 100;
+const Comment = mongoose.model('Comment');
+const NUMBER_OF_USERS_TO_CREATE = 100;
+const NUMBER_OF_ITEMS_TO_CREATE = 2;
+const NUMBER_OF_COMMENTS_TO_CREATE = 2;
 
 mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.once('open', () => {
@@ -45,20 +49,47 @@ const createItem = async user => {
   });
 };
 
+const createComment = async (user, item) => {
+  const commentData = {
+    body: 'Just a dummy comment, bla bla bla.'
+  };
+
+  const comment = new Comment(commentData);
+  comment.seller = user;
+  comment.item = item;
+
+  return comment.save().then(() => {
+    item.comments = item.comments.concat([comment]);
+    return item.save().then(() => {
+      console.log(`comment created`);
+    });
+  });
+};
+
+const populateDummyUsers = async () => {
+  const usersToCreate = new Array(NUMBER_OF_USERS_TO_CREATE).fill();
+  return Promise.all(usersToCreate.map(() => createUser()));
+};
+
 const populateDummyItems = async user => {
   const itemsToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
   return Promise.all(itemsToCreate.map(() => createItem(user)));
 };
 
-const populateDummyUsers = async () => {
-  const usersToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
-  return Promise.all(usersToCreate.map(() => createUser()));
+const populateDummyComments = async (user, item) => {
+  const commentsToCreate = new Array(NUMBER_OF_COMMENTS_TO_CREATE).fill();
+  return Promise.all(commentsToCreate.map(() => createComment(user, item)));
 };
 
 (async () => {
   try {
-    const [user] = await populateDummyUsers();
-    await populateDummyItems(user);
+    const users = await populateDummyUsers();
+    users.forEach(async user => {
+      const items = await populateDummyItems(user);
+      items.forEach(async item => {
+        await populateDummyComments(user, item);
+      });
+    });
     console.log('created dummy data');
   } catch (err) {
     console.log(err);
