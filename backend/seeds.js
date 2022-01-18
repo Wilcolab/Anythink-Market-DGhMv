@@ -10,8 +10,6 @@ const User = mongoose.model('User');
 const Item = mongoose.model('Item');
 const Comment = mongoose.model('Comment');
 const NUMBER_OF_USERS_TO_CREATE = 100;
-const NUMBER_OF_ITEMS_TO_CREATE = 2;
-const NUMBER_OF_COMMENTS_TO_CREATE = 2;
 
 mongoose.connect(process.env.MONGODB_URI);
 mongoose.connection.once('open', () => {
@@ -21,7 +19,7 @@ mongoose.connection.once('open', () => {
 const createUser = async () => {
   const randomId = randomUUID().split('-')[0];
   const user = new User({ username: `DummyUserWilco${randomId}`, email: `dummy${randomId}@dummy.com` });
-  return user.save().then(() => {
+  return user.save().then(user => {
     console.log(`created user ${user.username}`);
     return user;
   });
@@ -44,8 +42,9 @@ const createItem = async user => {
   const item = new Item(itemData);
   item.seller = user;
 
-  return item.save().then(() => {
+  return item.save().then(item => {
     console.log(`${randomId} item created`);
+    return item;
   });
 };
 
@@ -71,29 +70,19 @@ const populateDummyUsers = async () => {
   return Promise.all(usersToCreate.map(() => createUser()));
 };
 
-const populateDummyItems = async user => {
-  const itemsToCreate = new Array(NUMBER_OF_ITEMS_TO_CREATE).fill();
-  return Promise.all(itemsToCreate.map(() => createItem(user)));
-};
-
-const populateDummyComments = async (user, item) => {
-  const commentsToCreate = new Array(NUMBER_OF_COMMENTS_TO_CREATE).fill();
-  return Promise.all(commentsToCreate.map(() => createComment(user, item)));
-};
-
-(async () => {
+const populateDummyData = async () => {
   try {
     const users = await populateDummyUsers();
-    users.forEach(async user => {
-      const items = await populateDummyItems(user);
-      items.forEach(async item => {
-        await populateDummyComments(user, item);
-      });
-    });
+    for (const user of users) {
+      const item = await createItem(user);
+      await createComment(user, item);
+    }
     console.log('created dummy data');
   } catch (err) {
     console.log(err);
   }
 
   process.exit();
-})();
+};
+
+populateDummyData();
