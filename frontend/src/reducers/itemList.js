@@ -51,7 +51,7 @@ const reducer = (state = {}, action) => {
         ...state,
         pager: action.pager,
         tags: action.payload[0].tags,
-        items: action.payload[1].items,
+        items: action.payload[1].items.map(item => ({ ...item, image: item.image || '/placeholder.png' })),
         itemsCount: action.payload[1].itemsCount,
         currentPage: 0,
         tab: action.tab,
