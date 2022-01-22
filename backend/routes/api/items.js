@@ -86,6 +86,9 @@ router.get("/", auth.optional, function(req, res, next) {
           items: await Promise.all(
             items.map(async function(item) {
               item.seller = await User.findById(item.seller);
+              if(!item.image){
+                item.image = "/placeholder.png";
+              }
               return item.toJSONFor(user);
             })
           ),
@@ -127,6 +130,9 @@ router.get("/feed", auth.required, function(req, res, next) {
 
         return res.json({
           items: items.map(function(item) {
+            if(!item.image){
+              item.image = "/placeholder.png";
+            }
             return item.toJSONFor(user);
           }),
           itemsCount: itemsCount
@@ -144,6 +150,9 @@ router.post("/", auth.required, function(req, res, next) {
       }
 
       var item = new Item(req.body.item);
+      if(!item.image){
+        item.image = "/placeholder.png";
+      } 
 
       item.seller = user;
 
@@ -164,6 +173,9 @@ router.get("/:item", auth.optional, function(req, res, next) {
     .then(function(results) {
       var user = results[0];
 
+      if(!results[1].image){
+        results[1].image = "/placeholder.png";
+      }
       return res.json({ item: req.item.toJSONFor(user) });
     })
     .catch(next);
