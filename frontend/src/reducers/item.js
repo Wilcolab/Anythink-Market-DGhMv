@@ -10,7 +10,7 @@ const reducer = (state = {}, action) => {
     case ITEM_PAGE_LOADED:
       return {
         ...state,
-        item: action.payload[0].item,
+        item: { ...action.payload[0].item, image: action.payload[0].item.image || '/placeholder.png' },
         comments: action.payload[1].comments,
       };
     case ITEM_PAGE_UNLOADED:
