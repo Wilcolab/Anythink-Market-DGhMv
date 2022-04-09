@@ -8,6 +8,7 @@ import {
   HOME_PAGE_LOADED,
   HOME_PAGE_UNLOADED,
   APPLY_TAG_FILTER,
+  CHANGE_TAB
 } from "../../constants/actionTypes";
 
 const Promise = global.Promise;
@@ -24,9 +25,20 @@ const mapDispatchToProps = (dispatch) => ({
   onLoad: (tab, pager, payload) =>
     dispatch({ type: HOME_PAGE_LOADED, tab, pager, payload }),
   onUnload: () => dispatch({ type: HOME_PAGE_UNLOADED }),
+  onSearch: title =>
+    dispatch({ type: CHANGE_TAB, tab: 'all', pager: agent.Items.byTitle, payload: agent.Items.byTitle(title) })
 });
 
 class Home extends React.Component {
+  constructor() {
+    super();
+    this.state = {searchText: ""};
+  }
+    
+  setSearchText(searchText) {
+    this.setState({ searchText });    
+  }
+    
   componentWillMount() {
     const tab = this.props.token ? "feed" : "all";
     const itemsPromise = this.props.token ? agent.Items.feed : agent.Items.all;
@@ -38,6 +50,13 @@ class Home extends React.Component {
     );
   }
 
+  componentDidUpdate() {
+    //? debounce
+     if (this.state.searchText.length > 2) {       
+       this.props.onSearch(this.state.searchText);
+     }
+  }
+
   componentWillUnmount() {
     this.props.onUnload();
   }
@@ -45,11 +64,11 @@ class Home extends React.Component {
   render() {
     return (
       <div className="home-page">
-        <Banner />
+        <Banner setSearchText={(searchText) => this.setSearchText(searchText) } />
 
         <div className="container page">
           <Tags tags={this.props.tags} onClickTag={this.props.onClickTag} />
-          <MainView />
+          <MainView searchText={this.state.searchText} />
         </div>
       </div>
     );
