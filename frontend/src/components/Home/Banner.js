@@ -14,7 +14,7 @@ const Banner = (props) => {
         <img width="100%" src={logo} alt="banner" />
         <h2>
           <span>
-            A place to <span onClick={() => setShouldDisplaySearch(true)}>get </span>
+            A place to <span id="get-part" onClick={() => setShouldDisplaySearch(true)}>get </span>
           </span>
           {shouldDisplaySearch && (
             <input id="search-box" type="text" placeholder="Search" onChange={handleSearchChange} />
